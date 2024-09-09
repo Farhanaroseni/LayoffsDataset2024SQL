@@ -16,11 +16,10 @@ create table layoffs(
 
 select * from layoffs;
 
--- Data cleaning
+-------------------- Data cleaning --------------------
 
 -- Create a staging data so that we are not overwrite the original data in case of anything.
-drop table layoffs_staging;
-	
+
 create table layoffs_staging as
 select * from layoffs; 
 
@@ -33,7 +32,7 @@ ADD COLUMN id SERIAL PRIMARY KEY;
 
 select * from layoffs_staging;
 
-------------------- Remove duplicates----------------------------
+-- Remove duplicates
 
 with duplicate_cte as (
 select *,
@@ -48,7 +47,7 @@ where id in (
 	where row_num > 1
 );
 
---2 duplicate rows was removed.
+-- 2 duplicate rows was removed.
 
 select * from layoffs_staging;
 
@@ -79,18 +78,17 @@ select distinct country
 from layoffs_staging
 order by 1;
 
-
+-- Missing values
 
 select *
 from layoffs_staging
 where industry is null or industry = ' ';
 
---Check whether there is the same company in other rows so that we can populate the industry if there is.
+--Check whether there is the same company in other rows so that we can populate the industry if there is. Since none, just leave it for now.
+
 select *
 from layoffs_staging
 where company = 'Appsmith';
-
-
 
 select * 
 from layoffs_staging
@@ -100,8 +98,7 @@ delete
 from layoffs_staging
 where total_laid_off is null and percentage_laid_off is null;
 
-
--- Exploratory Data Analysis
+-------------------- Exploratory Data Analysis --------------------
 
 select *
 from layoffs_staging;
@@ -157,7 +154,6 @@ from layoffs_staging
 group by to_char(dates, 'YYYY-MM')
 order by 1 asc;
 
-
 with rolling_total as (
 select to_char(dates, 'YYYY-MM') as months, sum(total_laid_off) as total_laid
 from layoffs_staging
@@ -166,7 +162,6 @@ order by 1 asc
 )
 select months, total_laid, sum(total_laid) over(order by months) as rolling_total
 from rolling_total;
-
 
 select company, extract (year from dates), sum(total_laid_off)
 from layoffs_staging
@@ -184,4 +179,4 @@ from company_year
 )
 select *
 from company_year_rank
-where ranking <= 5
+where ranking <= 5;
